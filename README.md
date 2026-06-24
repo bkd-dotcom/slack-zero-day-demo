@@ -15,19 +15,25 @@ Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely wit
 
 ```mermaid
 flowchart TD
-    subgraph slack_workspace [Slack Workspace]
-        User([Security Team])
-        SlackApp[Zero-Day Sentinel Bot]
+    subgraph slack_workspace [1. Slack Workspace]
+        direction TB
+        User([Security Team]) -->|Commands| SlackApp[Zero-Day Sentinel Bot]
     end
 
-    subgraph backend_infrastructure [Backend Infrastructure app.py]
+    subgraph backend_infrastructure [2. Backend Infrastructure]
+        direction TB
         SlackBolt[Slack Bolt API]
         Scanner(Proactive Scanner Daemon)
         CoreLogic{Zero-Touch Autonomy Core}
         State[Global App State]
+        
+        SlackBolt --> CoreLogic
+        Scanner -->|Polls every 30s| CoreLogic
+        CoreLogic -->|Syncs Telemetry| State
     end
 
-    subgraph external_apis [External APIs & MCP]
+    subgraph external_apis [3. External APIs & Auto-Remediation]
+        direction TB
         GitHubMCP[GitHub MCP Server]
         OSV[OSV.dev Vulnerability DB]
         Gemini[Gemini 2.0 Flash AI]
@@ -35,30 +41,22 @@ flowchart TD
         GitHubAPI[GitHub PR API]
     end
 
-    subgraph frontend_dashboard [Frontend Dashboard]
-        Vite[Vite + React Dashboard]
-        ForceGraph[ForceGraph2D Topology Map]
+    subgraph frontend_dashboard [4. Frontend Dashboard]
+        direction TB
+        Vite[Vite + React Dashboard] --> ForceGraph[ForceGraph2D Topology Map]
     end
 
-    %% Manual and Proactive Triggers
-    User -- "/scan-dependencies <br> /toggle-agent" --> SlackApp
-    SlackApp <--> |Socket Mode WebSocket| SlackBolt
-    SlackBolt --> CoreLogic
-    Scanner -- "Polls every 30s" --> CoreLogic
+    %% Vertical Inter-Subgraph Links
+    SlackApp -->|Socket Mode WebSocket| SlackBolt
     
-    %% Data Gathering & Analysis
-    CoreLogic -- "Read repo manifests" --> GitHubMCP
-    CoreLogic -- "Query CVEs" --> OSV
-    CoreLogic -- "Generate Threat Analysis" --> Gemini
+    CoreLogic -->|Read manifests| GitHubMCP
+    CoreLogic -->|Query CVEs| OSV
+    CoreLogic -->|Threat Analysis| Gemini
     
-    %% Zero-Touch Remediation
-    CoreLogic -- "Create Auto-Patch PR" --> GitHubAPI
-    CoreLogic -- "Create Incident Ticket" --> Jira
+    CoreLogic -->|Auto-Patch PR| GitHubAPI
+    CoreLogic -->|Create Incident Ticket| Jira
     
-    %% Dashboard Telemetry
-    CoreLogic -- "Sync Telemetry" --> State
-    Vite -- "Polls /api/status" --> State
-    Vite --> ForceGraph
+    State -.->|Dashboard polls /api/status| Vite
 ```
 
 ---
