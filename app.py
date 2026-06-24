@@ -119,7 +119,7 @@ def handle_scan_command(ack, body, logger, respond):
         respond(blocks=blocks, response_type="in_channel")
         
         if len(vulnerable_packages) > 1:
-            respond(text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the Web Dashboard._", response_type="in_channel")
+            respond(text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the <http://localhost:5173|Web Dashboard>._", response_type="in_channel")
     else:
         respond(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.", response_type="in_channel")
 
@@ -238,7 +238,7 @@ def proactive_scanner(bot_token):
                     ]
                 )
                 if len(vulnerable_packages) > 1:
-                    client.chat_postMessage(channel="C0BCP8DPP6X", text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the Web Dashboard._")
+                    client.chat_postMessage(channel="C0BCP8DPP6X", text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the <http://localhost:5173|Web Dashboard>._")
             except Exception as e:
                 logger.error(f"Failed to send proactive alert: {e}.")
             
