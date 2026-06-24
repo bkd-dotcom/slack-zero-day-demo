@@ -35,6 +35,8 @@ latest_scan_results = {
     "all_dependencies": {}
 }
 
+daemon_enabled = True
+
 @flask_app.route('/api/status', methods=['GET'])
 def get_status():
     return jsonify(latest_scan_results)
@@ -123,6 +125,15 @@ def handle_scan_command(ack, body, logger, respond):
     else:
         respond(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.", response_type="in_channel")
 
+@app.command("/toggle-agent")
+def handle_toggle_agent(ack, respond):
+    ack()
+    global daemon_enabled
+    daemon_enabled = not daemon_enabled
+    status = "resumed" if daemon_enabled else "paused"
+    emoji = "▶️" if daemon_enabled else "⏸️"
+    respond(text=f"{emoji} *Agent Toggle:* Zero-Touch proactive background scanning has been *{status}*.", response_type="in_channel")
+
 @app.action("create_ticket")
 def handle_create_ticket(ack, body, logger, respond):
     ack()
@@ -197,6 +208,10 @@ def proactive_scanner(bot_token):
     
     while True:
         time.sleep(30) # Run every 30 seconds for the demo
+        global daemon_enabled
+        if not daemon_enabled:
+            continue
+            
         logger.info("Background daemon running proactive multi-ecosystem scan...")
         
         vulnerable_packages = run_scan_logic()
