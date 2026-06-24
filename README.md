@@ -15,19 +15,19 @@ Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely wit
 
 ```mermaid
 flowchart TD
-    subgraph Slack Workspace
+    subgraph slack_workspace [Slack Workspace]
         User([Security Team])
         SlackApp[Zero-Day Sentinel Bot]
     end
 
-    subgraph Backend Infrastructure (app.py)
+    subgraph backend_infrastructure [Backend Infrastructure app.py]
         SlackBolt[Slack Bolt API]
         Scanner(Proactive Scanner Daemon)
         CoreLogic{Zero-Touch Autonomy Core}
         State[Global App State]
     end
 
-    subgraph External APIs & MCP
+    subgraph external_apis [External APIs & MCP]
         GitHubMCP[GitHub MCP Server]
         OSV[OSV.dev Vulnerability DB]
         Gemini[Gemini 2.0 Flash AI]
@@ -35,13 +35,13 @@ flowchart TD
         GitHubAPI[GitHub PR API]
     end
 
-    subgraph Frontend Dashboard
+    subgraph frontend_dashboard [Frontend Dashboard]
         Vite[Vite + React Dashboard]
         ForceGraph[ForceGraph2D Topology Map]
     end
 
     %% Manual and Proactive Triggers
-    User -- "/scan-dependencies\n/toggle-agent" --> SlackApp
+    User -- "/scan-dependencies <br> /toggle-agent" --> SlackApp
     SlackApp <--> |Socket Mode WebSocket| SlackBolt
     SlackBolt --> CoreLogic
     Scanner -- "Polls every 30s" --> CoreLogic
