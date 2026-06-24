@@ -4,10 +4,62 @@
 Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely within your Slack workspace. It continuously scans your repositories across multiple ecosystems (`npm`, `PyPI`, `Go`) in real-time, cross-references dependencies against `OSV.dev`, and uses AI to instantly auto-remediate Zero-Days before a human even has to intervene.
 
 ## ✨ Core Features
-- **Slack-Native Bot:** Trigger manual scans from Slack with `/scan-dependencies`.
+- **Slack-Native Bot:** Trigger manual scans from Slack with `/scan-dependencies` or pause the daemon with `/toggle-agent`.
 - **Zero-Touch Autonomy:** Background daemon detects zero-days, automatically opens a patched Pull Request on GitHub, and creates an Enterprise Jira Ticket (all completely hands-off).
 - **Anthropic-Style Topology Dashboard:** A hyper-clean, academic web dashboard powered by a live `ForceGraph2D` physics engine that maps your entire attack surface visually.
 - **Universal Ecosystem Parsing:** Connects live via MCP to parse `package.json`, `requirements.txt`, and `go.mod`.
+
+---
+
+## 🏗️ Architecture & Data Flow
+
+```mermaid
+flowchart TD
+    subgraph Slack Workspace
+        User([Security Team])
+        SlackApp[Zero-Day Sentinel Bot]
+    end
+
+    subgraph Backend Infrastructure (app.py)
+        SlackBolt[Slack Bolt API]
+        Scanner(Proactive Scanner Daemon)
+        CoreLogic{Zero-Touch Autonomy Core}
+        State[Global App State]
+    end
+
+    subgraph External APIs & MCP
+        GitHubMCP[GitHub MCP Server]
+        OSV[OSV.dev Vulnerability DB]
+        Gemini[Gemini 2.0 Flash AI]
+        Jira[Jira REST API]
+        GitHubAPI[GitHub PR API]
+    end
+
+    subgraph Frontend Dashboard
+        Vite[Vite + React Dashboard]
+        ForceGraph[ForceGraph2D Topology Map]
+    end
+
+    %% Manual and Proactive Triggers
+    User -- "/scan-dependencies\n/toggle-agent" --> SlackApp
+    SlackApp <--> |Socket Mode WebSocket| SlackBolt
+    SlackBolt --> CoreLogic
+    Scanner -- "Polls every 30s" --> CoreLogic
+    
+    %% Data Gathering & Analysis
+    CoreLogic -- "Read repo manifests" --> GitHubMCP
+    CoreLogic -- "Query CVEs" --> OSV
+    CoreLogic -- "Generate Threat Analysis" --> Gemini
+    
+    %% Zero-Touch Remediation
+    CoreLogic -- "Create Auto-Patch PR" --> GitHubAPI
+    CoreLogic -- "Create Incident Ticket" --> Jira
+    
+    %% Dashboard Telemetry
+    CoreLogic -- "Sync Telemetry" --> State
+    Vite -- "Polls /api/status" --> State
+    Vite --> ForceGraph
+```
 
 ---
 
