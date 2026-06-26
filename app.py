@@ -19,6 +19,8 @@ from flask_cors import CORS
 # Load environment variables
 load_dotenv()
 
+SLACK_CHANNEL_ID = os.environ.get("SLACK_CHANNEL_ID", "C0BCP8DPP6X")
+
 # Initialize Slack App
 app = App(token=os.environ.get("SLACK_BOT_TOKEN"))
 logging.basicConfig(level=logging.DEBUG)
@@ -32,10 +34,12 @@ latest_scan_results = {
     "vulnerabilities": [],
     "score": 100,
     "last_scan_time": "Never",
-    "all_dependencies": {}
+    "all_dependencies": {},
+    "scan_latency_ms": 0
 }
 
 daemon_enabled = True
+alerted_vuln_ids = set()
 
 @flask_app.route('/api/status', methods=['GET'])
 def get_status():
@@ -56,6 +60,7 @@ def update_global_state(vulnerable_packages):
 
 def run_scan_logic():
     """Runs the universal scan logic and updates global state."""
+    scan_start = time.time()
     dependencies = get_repo_dependencies()
     if not dependencies:
         return []
@@ -85,7 +90,9 @@ def run_scan_logic():
                     "ai_threat_analysis": generate_threat_analysis(pkg, vulns[0].get("summary", "Security Vulnerability Detected"))
                 })
                 
+    scan_latency = int((time.time() - scan_start) * 1000)
     update_global_state(vulnerable_packages)
+    latest_scan_results["scan_latency_ms"] = scan_latency
     return vulnerable_packages
 
 # --- SLACK EVENT HANDLERS ---
@@ -133,6 +140,19 @@ def handle_toggle_agent(ack, respond):
     status = "resumed" if daemon_enabled else "paused"
     emoji = "▶️" if daemon_enabled else "⏸️"
     respond(text=f"{emoji} *Agent Toggle:* Zero-Touch proactive background scanning has been *{status}*.", response_type="in_channel")
+
+@app.command("/sentinel-help")
+def handle_help_command(ack, respond):
+    ack()
+    respond(
+        text="🛡️ *Zero-Day Sentinel — Command Reference*\n\n"
+             "• `/scan-dependencies` — Trigger a manual scan across npm, PyPI, and Go ecosystems.\n"
+             "• `/zero-day-scan` — Alias for `/scan-dependencies`.\n"
+             "• `/toggle-agent` — Pause or resume the proactive background scanner daemon.\n"
+             "• `/sentinel-help` — Show this help message.\n\n"
+             "📊 *Dashboard:* <http://localhost:5173|Open Enterprise Dashboard>",
+        response_type="ephemeral"
+    )
 
 @app.action("create_ticket")
 def handle_create_ticket(ack, body, logger, respond):
@@ -201,7 +221,7 @@ def handle_view_submission(ack, body, client, view, logger):
     pkg_name = view["private_metadata"]
     question = view["state"]["values"]["question_block"]["user_question"]["value"]
     ai_response = ask_gemini_question(pkg_name, question)
-    client.chat_postMessage(channel="C0BCP8DPP6X", text=f"<@{user_id}> asked Gemini about `{pkg_name}`:\n*Question:* {question}\n\n🤖 *Gemini says:*\n{ai_response}")
+    client.chat_postMessage(channel=SLACK_CHANNEL_ID, text=f"<@{user_id}> asked Gemini about `{pkg_name}`:\n*Question:* {question}\n\n🤖 *Gemini says:*\n{ai_response}")
 
 def proactive_scanner(bot_token):
     client = WebClient(token=bot_token)
@@ -216,9 +236,13 @@ def proactive_scanner(bot_token):
         
         vulnerable_packages = run_scan_logic()
         
-        if vulnerable_packages:
-            v = vulnerable_packages[0]
-            logger.info(f"Proactive scan detected: {v['name']}. Triggering Zero-Touch Automation.")
+        # Filter out already-alerted vulnerabilities
+        new_vulns = [v for v in vulnerable_packages if v['latest_id'] not in alerted_vuln_ids]
+        
+        if new_vulns:
+            v = new_vulns[0]
+            alerted_vuln_ids.add(v['latest_id'])
+            logger.info(f"Proactive scan detected NEW vuln: {v['name']}. Triggering Zero-Touch Automation.")
             
             try:
                 # 1. Zero-Touch PR Creation
@@ -242,7 +266,7 @@ def proactive_scanner(bot_token):
 
                 # 3. Informational Slack Alert
                 client.chat_postMessage(
-                    channel="C0BCP8DPP6X",
+                    channel=SLACK_CHANNEL_ID,
                     text="🚨 *ZERO-TOUCH AUTONOMY TRIGGERED* 🚨",
                     blocks=[
                         {"type": "header", "text": {"type": "plain_text", "text": "🚨 ZERO-TOUCH REMEDIATION 🚨", "emoji": True}},
@@ -252,12 +276,10 @@ def proactive_scanner(bot_token):
                         {"type": "section", "text": {"type": "mrkdwn", "text": f"✅ *Actions Taken Autonomously:*\n• *Code Patch:* Auto-Patch PR created: {pr_link_text}\n• *Ticketing:* Jira Ticket <https://jira.com/browse/SEC-105|SEC-105> automatically generated and assigned."}},
                     ]
                 )
-                if len(vulnerable_packages) > 1:
-                    client.chat_postMessage(channel="C0BCP8DPP6X", text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the <http://localhost:5173|Web Dashboard>._")
+                if len(new_vulns) > 1:
+                    client.chat_postMessage(channel=SLACK_CHANNEL_ID, text=f"_Note: {len(new_vulns)-1} additional new vulnerabilities were found and populated to the <http://localhost:5173|Web Dashboard>._")
             except Exception as e:
                 logger.error(f"Failed to send proactive alert: {e}.")
-            
-            break # Stop loop to prevent spam
 
 if __name__ == "__main__":
     bot_token = os.environ.get("SLACK_BOT_TOKEN")

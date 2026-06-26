@@ -10,7 +10,8 @@ def parse_package_json(content):
     try:
         data = json.loads(content)
         return data.get("dependencies", {})
-    except:
+    except Exception as e:
+        logger.warning(f"Failed to parse package.json: {e}")
         return {}
 
 def parse_requirements_txt(content):

@@ -33,18 +33,23 @@ def create_auto_patch_pr(owner, repo, package_name):
         branch_resp = requests.post(f"https://api.github.com/repos/{owner}/{repo}/git/refs", headers=headers, json={"ref": f"refs/heads/{branch_name}", "sha": sha})
         branch_resp.raise_for_status()
         
-        # 3. Get package.json SHA
+        # 3. Get current package.json content and SHA
         file_resp = requests.get(f"https://api.github.com/repos/{owner}/{repo}/contents/package.json?ref=main", headers=headers)
         file_resp.raise_for_status()
-        file_sha = file_resp.json().get("sha")
+        file_data = file_resp.json()
+        file_sha = file_data.get("sha")
         
-        # 4. Upload patched package.json
-        patched_content = {
-            "dependencies": {
-                package_name: "^3.0.0" # Mock patched version
-            }
-        }
-        encoded_content = base64.b64encode(json.dumps(patched_content, indent=2).encode()).decode()
+        # 4. Parse current package.json and bump only the vulnerable package
+        current_content = base64.b64decode(file_data.get("content", "")).decode("utf-8")
+        try:
+            pkg_json = json.loads(current_content)
+        except json.JSONDecodeError:
+            pkg_json = {"dependencies": {}}
+        
+        if "dependencies" in pkg_json and package_name in pkg_json["dependencies"]:
+            pkg_json["dependencies"][package_name] = "^latest"  # Bump to safe version
+        
+        encoded_content = base64.b64encode(json.dumps(pkg_json, indent=2).encode()).decode()
         
         update_resp = requests.put(f"https://api.github.com/repos/{owner}/{repo}/contents/package.json", headers=headers, json={
             "message": f"Security patch: Bump {package_name}",

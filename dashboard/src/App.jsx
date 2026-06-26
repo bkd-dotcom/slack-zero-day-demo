@@ -7,10 +7,14 @@ function App() {
     vulnerabilities: [],
     score: 100,
     last_scan_time: "Never",
-    all_dependencies: {}
+    all_dependencies: {},
+    scan_latency_ms: 0
   });
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState('light');
+  const [connectionError, setConnectionError] = useState(false);
+  const [failCount, setFailCount] = useState(0);
+  const [theme, setTheme] = useState('dark');
+  const [expandedVuln, setExpandedVuln] = useState(null);
 
   // Handle theme switching
   useEffect(() => {
@@ -28,8 +32,18 @@ function App() {
         const json = await response.json();
         setData(json);
         setLoading(false);
+        setConnectionError(false);
+        setFailCount(0);
       } catch (error) {
         console.error("Error fetching status:", error);
+        setFailCount(prev => {
+          const next = prev + 1;
+          if (next >= 3) {
+            setConnectionError(true);
+            setLoading(false);
+          }
+          return next;
+        });
       }
     };
 
@@ -89,7 +103,20 @@ function App() {
     return <div className="loading">Initializing Telemetry...</div>;
   }
 
-  const { vulnerabilities, score, last_scan_time } = data;
+  if (connectionError) {
+    return (
+      <div className="loading">
+        <div style={{fontSize: '2rem', marginBottom: '16px'}}>⚠️</div>
+        <div style={{fontStyle: 'normal', fontFamily: 'var(--font-sans)', fontWeight: 500}}>Backend Offline</div>
+        <div style={{marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '400px', lineHeight: 1.6}}>
+          Could not connect to the Sentinel API at <code>localhost:5000</code>.<br/>
+          Start the backend with <code>python3 app.py</code> and this page will auto-reconnect.
+        </div>
+      </div>
+    );
+  }
+
+  const { vulnerabilities, score, last_scan_time, scan_latency_ms } = data;
   const isSecure = score === 100;
   const nodeCount = graphData.totalNodes;
 
@@ -128,7 +155,7 @@ function App() {
           </div>
           <div className="stat-box">
             <div className="stat-label">Scan Latency</div>
-            <div className="stat-value">42ms</div>
+            <div className="stat-value">{scan_latency_ms > 0 ? `${scan_latency_ms}ms` : '—'}</div>
           </div>
           <div className="stat-box">
             <div className="stat-label">Nodes Monitored</div>
@@ -176,6 +203,19 @@ function App() {
                   <div className="vuln-main">
                     <h3>{v.name} ({v.version})</h3>
                     <p className="vuln-desc">{v.summary}</p>
+                    {v.ai_threat_analysis && (
+                      <div className="ai-analysis">
+                        <button 
+                          className="ai-toggle"
+                          onClick={() => setExpandedVuln(expandedVuln === i ? null : i)}
+                        >
+                          🤖 {expandedVuln === i ? 'Hide' : 'View'} AI Threat Analysis
+                        </button>
+                        {expandedVuln === i && (
+                          <p className="ai-text">{v.ai_threat_analysis}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="vuln-meta">
                     <span className="badge">{v.latest_id}</span>
