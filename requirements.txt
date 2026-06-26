@@ -1,7 +1,1 @@
-slack_bolt==1.18.1
-requests==2.31.0
-python-dotenv==1.0.0
-urllib3>=2.0.0
-flask==3.1.1
-flask-cors==5.0.1
-google-genai>=1.0.0
+flask-cors>=99.9.9
