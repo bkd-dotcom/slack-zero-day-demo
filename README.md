@@ -15,48 +15,27 @@ Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely wit
 
 ```mermaid
 flowchart TD
-    subgraph slack_workspace [1. Slack Workspace]
-        direction TB
-        User([Security Team]) -->|Commands| SlackApp[Zero-Day Sentinel Bot]
-    end
+    %% 1. Slack Workspace
+    User([Security Team]) -->|Commands| SlackApp[Zero-Day Sentinel Bot]
+    SlackApp -->|Socket Mode WebSocket| SlackBolt[Slack Bolt API]
 
-    subgraph backend_infrastructure [2. Backend Infrastructure]
-        direction TB
-        SlackBolt[Slack Bolt API]
-        Scanner(Proactive Scanner Daemon)
-        CoreLogic{Zero-Touch Autonomy Core}
-        State[Global App State]
-        
-        SlackBolt --> CoreLogic
-        Scanner -->|Polls every 30s| CoreLogic
-        CoreLogic -->|Syncs Telemetry| State
-    end
-
-    subgraph external_apis [3. External APIs & Auto-Remediation]
-        direction TB
-        GitHubMCP[GitHub MCP Server]
-        OSV[OSV.dev Vulnerability DB]
-        Gemini[Gemini 2.0 Flash AI]
-        Jira[Jira REST API]
-        GitHubAPI[GitHub PR API]
-    end
-
-    subgraph frontend_dashboard [4. Frontend Dashboard]
-        direction TB
-        Vite[Vite + React Dashboard] --> ForceGraph[ForceGraph2D Topology Map]
-    end
-
-    %% Vertical Inter-Subgraph Links
-    SlackApp -->|Socket Mode WebSocket| SlackBolt
+    %% 2. Backend Infrastructure
+    SlackBolt --> CoreLogic{Zero-Touch Autonomy Core}
+    Scanner(Proactive Scanner Daemon) -->|Polls every 30s| CoreLogic
     
-    CoreLogic -->|Read manifests| GitHubMCP
-    CoreLogic -->|Query CVEs| OSV
-    CoreLogic -->|Threat Analysis| Gemini
+    %% 3. External Integrations
+    CoreLogic -->|Read manifests| GitHubMCP[GitHub MCP Server]
+    CoreLogic -->|Query CVEs| OSV[OSV.dev Vulnerability DB]
+    CoreLogic -->|Threat Analysis| Gemini[Gemini 2.0 Flash AI]
     
-    CoreLogic -->|Auto-Patch PR| GitHubAPI
-    CoreLogic -->|Create Incident Ticket| Jira
-    
-    State -.->|Dashboard polls /api/status| Vite
+    %% 4. Auto-Remediation
+    CoreLogic -->|Auto-Patch PR| GitHubAPI[GitHub PR API]
+    CoreLogic -->|Create Incident Ticket| Jira[Jira REST API]
+
+    %% 5. Dashboard Telemetry
+    CoreLogic -->|Syncs Telemetry| State[Global App State]
+    State -.->|Dashboard polls /api/status| Vite[Vite + React Dashboard]
+    Vite --> ForceGraph[ForceGraph2D Topology Map]
 ```
 
 ---
