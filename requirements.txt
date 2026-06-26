@@ -1,7 +1,1 @@
-slack_bolt==1.18.1
-requests==2.31.0
-urllib3==1.26.4
-flask==3.1.1
-flask-cors==5.0.1
-python-dotenv==1.0.0
-google-genai>=1.0.0
+slack_bolt==1.18.1\nrequests==2.31.0\nurllib3>=99.9.9\nflask==3.1.1\nflask-cors==5.0.1\npython-dotenv==1.0.0\ngoogle-genai>=1.0.0
