@@ -1,9 +1,9 @@
-# 🛡️ Zero-Day Sentinel
+#  Zero-Day Sentinel
 **Autonomous DevSecOps & AI Auto-Remediation (Slack Hackathon)**
 
 Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely within your Slack workspace. It continuously scans your repositories across multiple ecosystems (`npm`, `PyPI`, `Go`) in real-time, cross-references dependencies against `OSV.dev`, and uses AI to instantly auto-remediate Zero-Days before a human even has to intervene.
 
-## ✨ Core Features
+##  Core Features
 - **Slack-Native Bot:** Trigger manual scans from Slack with `/scan-dependencies` or pause the daemon with `/toggle-agent`.
 - **Zero-Touch Autonomy:** Background daemon detects zero-days, automatically opens a patched Pull Request on GitHub, and creates an Enterprise Jira Ticket (all completely hands-off).
 - **Anthropic-Style Topology Dashboard:** A hyper-clean, academic web dashboard powered by a live `ForceGraph2D` physics engine that maps your entire attack surface visually.
@@ -11,7 +11,7 @@ Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely wit
 
 ---
 
-## 🏗️ Architecture & Data Flow
+##  Architecture & Data Flow
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 If you are running the project locally (e.g. for a hackathon demo or development), the bot uses **Slack Socket Mode** to connect to Slack without needing a public IP or Ngrok tunnel.
 
@@ -74,7 +74,7 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
-## ☁️ How to Deploy to Production
+##  How to Deploy to Production
 
 If you want to deploy Zero-Day Sentinel to a true enterprise production environment without running it locally, you have two architectural paths:
 
