@@ -1,7 +1,7 @@
-#  Zero-Day Sentinel
+#  PatchGhost
 **Autonomous DevSecOps & AI Auto-Remediation (Slack Hackathon)**
 
-Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely within your Slack workspace. It continuously scans your repositories across multiple ecosystems (`npm`, `PyPI`, `Go`) in real-time, cross-references dependencies against `OSV.dev`, and uses AI to instantly auto-remediate Zero-Days before a human even has to intervene.
+PatchGhost is a Level-6 Autonomous Security Agent that lives entirely within your Slack workspace. It continuously scans your repositories across multiple ecosystems (`npm`, `PyPI`, `Go`) in real-time, cross-references dependencies against `OSV.dev`, and uses AI to instantly auto-remediate Zero-Days before a human even has to intervene.
 
 ##  Core Features
 - **Slack-Native Interface:** Trigger instant scans from Slack with `/scan-dependencies`, or simply `@mention` the bot in any channel for an autonomous vulnerability sweep.
@@ -16,7 +16,7 @@ Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely wit
 
 ```mermaid
 graph TD
-    User([Security Team]) -->|Commands| SlackApp[Zero-Day Sentinel Bot]
+    User([Security Team]) -->|Commands| SlackApp[PatchGhost Bot]
     SlackApp -->|Socket Mode WebSocket| SlackBolt[Slack Bolt API]
 
     SlackBolt --> CoreLogic{Zero-Touch Autonomy}
@@ -72,7 +72,7 @@ Open `http://localhost:5173` in your browser.
 
 ##  How to Deploy to Production
 
-If you want to deploy Zero-Day Sentinel to a true enterprise production environment without running it locally, you have two architectural paths:
+If you want to deploy PatchGhost to a true enterprise production environment without running it locally, you have two architectural paths:
 
 ### Option 1: Virtual Machine (Always-On)
 Because the bot currently uses **Socket Mode** (an active WebSocket connection), the easiest cloud deployment is an Always-On VM.

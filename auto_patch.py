@@ -125,7 +125,7 @@ def create_auto_patch_pr(owner, repo, package_name):
         # 5. Create PR
         pr_resp = session.post(f"https://api.github.com/repos/{owner}/{repo}/pulls", headers=headers, json={
             "title": f"🚨 Security Auto-Patch: Bump {package_name} to safe version",
-            "body": f"The Zero-Day Dependency Sentinel detected a critical vulnerability in `{package_name}`. This PR automatically bumps it to a secure version.",
+            "body": f"The PatchGhost detected a critical vulnerability in `{package_name}`. This PR automatically bumps it to a secure version.",
             "head": branch_name,
             "base": "main"
         }, timeout=15)

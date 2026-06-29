@@ -198,7 +198,7 @@ def handle_toggle_agent(ack, respond):
 def handle_help_command(ack, respond):
     ack()
     respond(
-        text="🛡️ *Zero-Day Sentinel — Command Reference*\n\n"
+        text="🛡️ *PatchGhost — Command Reference*\n\n"
              "• `/scan-dependencies` — Trigger a manual scan across npm, PyPI, and Go ecosystems.\n"
              "• `/zero-day-scan` — Alias for `/scan-dependencies`.\n"
              "• `/toggle-agent` — Pause or resume the proactive background scanner daemon.\n"
