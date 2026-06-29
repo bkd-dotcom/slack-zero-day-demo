@@ -50,7 +50,7 @@ function AuthOverlay({ onLogin }) {
       <div className="auth-modal">
         <div className="auth-header">
           <div className="auth-logo"></div>
-          <h2>PatchGhost Access</h2>
+          <h2>Sentinel Access</h2>
           <p>Authenticate to view enterprise telemetry.</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
@@ -197,7 +197,7 @@ function App() {
       <div className="full-screen-center error-state">
         <div className="error-icon">⚠️</div>
         <h3>Backend Offline</h3>
-        <p>Could not connect to the PatchGhost API.</p>
+        <p>Could not connect to the Sentinel API.</p>
         <p className="error-subtext">Start the backend with `python3 app.py` and this page will auto-reconnect.</p>
       </div>
     );
@@ -408,7 +408,7 @@ function App() {
         <div className="sidebar-brand">
           <div className="brand-logo"></div>
           <div>
-            <h1>PatchGhost</h1>
+            <h1>Sentinel</h1>
             <span>Autonomous DevSecOps</span>
           </div>
         </div>
@@ -466,7 +466,7 @@ function App() {
             {currentView === 'overview' && 'Real-time dependency analysis and autonomous remediation engine.'}
             {currentView === 'topology' && 'Visual representation of all monitored dependencies across ecosystems.'}
             {currentView === 'logs' && 'Historical log of detected vulnerabilities and actions taken.'}
-            {currentView === 'settings' && 'Manage PatchGhost daemon and automation preferences.'}
+            {currentView === 'settings' && 'Manage Sentinel daemon and automation preferences.'}
           </p>
         </header>
 
