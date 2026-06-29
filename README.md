@@ -4,37 +4,33 @@
 Zero-Day Sentinel is a Level-6 Autonomous Security Agent that lives entirely within your Slack workspace. It continuously scans your repositories across multiple ecosystems (`npm`, `PyPI`, `Go`) in real-time, cross-references dependencies against `OSV.dev`, and uses AI to instantly auto-remediate Zero-Days before a human even has to intervene.
 
 ##  Core Features
-- **Slack-Native Bot:** Trigger manual scans from Slack with `/scan-dependencies` or pause the daemon with `/toggle-agent`.
-- **Zero-Touch Autonomy:** Background daemon detects zero-days, automatically opens a patched Pull Request on GitHub, and creates an Enterprise Jira Ticket (all completely hands-off).
-- **Anthropic-Style Topology Dashboard:** A hyper-clean, academic web dashboard powered by a live `ForceGraph2D` physics engine that maps your entire attack surface visually.
-- **Universal Ecosystem Parsing:** Connects live via MCP to parse `package.json`, `requirements.txt`, and `go.mod`.
+- **Slack-Native Interface:** Trigger instant scans from Slack with `/scan-dependencies`, or simply `@mention` the bot in any channel for an autonomous vulnerability sweep.
+- **Zero-Touch Autonomy:** Background daemon detects zero-days and automatically opens a secure Pull Request on GitHub with resilient enterprise-grade retry logic to survive network API drops.
+- **Gemini 2.5 Flash Intelligence:** Dynamically generates rapid, highly-accurate AI Threat Analyses for every vulnerability caught, securely cached to prevent rate limiting.
+- **Anthropic-Style Topology Dashboard:** A hyper-clean web dashboard powered by a live `ForceGraph2D` physics engine that maps your entire attack surface visually.
+- **Universal Ecosystem Parsing:** Connects live to parse `package.json`, `requirements.txt`, and `go.mod`.
 
 ---
 
 ##  Architecture & Data Flow
 
 ```mermaid
-flowchart TD
-    %% 1. Slack Workspace
+graph TD
     User([Security Team]) -->|Commands| SlackApp[Zero-Day Sentinel Bot]
     SlackApp -->|Socket Mode WebSocket| SlackBolt[Slack Bolt API]
 
-    %% 2. Backend Infrastructure
-    SlackBolt --> CoreLogic{Zero-Touch Autonomy Core}
+    SlackBolt --> CoreLogic{Zero-Touch Autonomy}
     Scanner(Proactive Scanner Daemon) -->|Polls every 30s| CoreLogic
     
-    %% 3. External Integrations
     CoreLogic -->|Read manifests| GitHubMCP[GitHub MCP Server]
     CoreLogic -->|Query CVEs| OSV[OSV.dev Vulnerability DB]
-    CoreLogic -->|Threat Analysis| Gemini[Gemini 2.0 Flash AI]
+    CoreLogic -->|Threat Analysis| Gemini[Gemini 2.5 Flash AI]
     
-    %% 4. Auto-Remediation
     CoreLogic -->|Auto-Patch PR| GitHubAPI[GitHub PR API]
     CoreLogic -->|Create Incident Ticket| Jira[Jira REST API]
 
-    %% 5. Dashboard Telemetry
     CoreLogic -->|Syncs Telemetry| State[Global App State]
-    State -.->|Dashboard polls /api/status| Vite[Vite + React Dashboard]
+    State -.-> Vite[Vite React Dashboard]
     Vite --> ForceGraph[ForceGraph2D Topology Map]
 ```
 
