@@ -51,71 +51,33 @@ def parse_go_mod(content):
     return deps
 
 def fetch_single_file_stateless(owner, repo, path):
+    import urllib.request
+    import json
+    import base64
+    import os
+    
+    token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref=main"
+    
+    req = urllib.request.Request(url)
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    if token:
+        req.add_header("Authorization", f"token {token}")
+        
     try:
-        env = os.environ.copy()
-        
-        init_req = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "slack-bot", "version": "1.0"}
-            }
-        }
-        
-        tool_req = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/call",
-            "params": {
-                "name": "get_file_contents",
-                "arguments": {
-                    "owner": owner,
-                    "repo": repo,
-                    "path": path
-                }
-            }
-        }
-        
-        full_input = json.dumps(init_req) + "\n" + json.dumps(tool_req) + "\n"
-        
-        process = subprocess.Popen(
-            ['npx', '-y', '@modelcontextprotocol/server-github'],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env=env
-        )
-        
-        stdout, stderr = process.communicate(input=full_input, timeout=10)
-        
-        for line in stdout.splitlines():
-            try:
-                response_data = json.loads(line)
-                if response_data.get("id") == 2:
-                    if "error" in response_data:
-                        return None
-                        
-                    tool_result = response_data.get("result", {})
-                    content_items = tool_result.get("content", [])
-                    if not content_items:
-                        return None
-                        
-                    file_content_str = content_items[0].get("text", "")
-                    if not file_content_str:
-                        return None
-                        
-                    github_response = json.loads(file_content_str)
-                    return github_response.get("content", "")
-            except json.JSONDecodeError:
-                continue
-                
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                content_b64 = data.get("content", "")
+                return base64.b64decode(content_b64).decode('utf-8')
+            else:
+                logger.warning(f"File {path} not found on GitHub main branch (HTTP {response.status}).")
+                return None
+    except urllib.error.HTTPError as e:
+        logger.warning(f"File {path} not found on GitHub main branch (HTTP {e.code}).")
         return None
     except Exception as e:
-        logger.warning(f"Failed to read/parse {path}: {e}")
+        logger.warning(f"Failed to fetch {path} from GitHub: {e}")
         return None
 
 def get_repo_dependencies():
