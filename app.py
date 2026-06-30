@@ -129,13 +129,18 @@ def handle_scan_command(ack, body, logger, respond):
     vulnerable_packages = latest_scan_results.get("vulnerabilities", [])
     
     if vulnerable_packages:
-        for v in vulnerable_packages:
+        total = len(vulnerable_packages)
+        for i, v in enumerate(vulnerable_packages):
+            remaining = total - 1 - i
+            note_text = f"_Note: {remaining} additional new vulnerabilities were found and populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._" if remaining > 0 else "_Note: All vulnerabilities have been populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._"
+            
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
                 {"type": "divider"},
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
-                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}},
+                {"type": "context", "elements": [{"type": "mrkdwn", "text": note_text}]}
             ]
             
             blocks.append({
@@ -148,7 +153,6 @@ def handle_scan_command(ack, body, logger, respond):
             })
             
             respond(blocks=blocks, response_type="in_channel")
-        respond(text=f"_Note: All {len(vulnerable_packages)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._", response_type="in_channel")
     else:
         respond(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.", response_type="in_channel")
 
@@ -159,13 +163,18 @@ def handle_app_mention(body, say, logger):
     vulnerable_packages = latest_scan_results.get("vulnerabilities", [])
     
     if vulnerable_packages:
-        for v in vulnerable_packages:
+        total = len(vulnerable_packages)
+        for i, v in enumerate(vulnerable_packages):
+            remaining = total - 1 - i
+            note_text = f"_Note: {remaining} additional new vulnerabilities were found and populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._" if remaining > 0 else "_Note: All vulnerabilities have been populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._"
+            
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
                 {"type": "divider"},
                 {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
-                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}},
+                {"type": "context", "elements": [{"type": "mrkdwn", "text": note_text}]}
             ]
             
             blocks.append({
@@ -178,7 +187,6 @@ def handle_app_mention(body, say, logger):
             })
             
             say(blocks=blocks)
-        say(text=f"_Note: All {len(vulnerable_packages)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._")
     else:
         say(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.")
 
@@ -325,8 +333,9 @@ def proactive_scanner(bot_token):
                 incident_logs.insert(0, log_entry)
                 
             latest_scan_results["incident_logs"] = incident_logs
+            total_new = len(new_vulns)
 
-            for v in new_vulns:
+            for i, v in enumerate(new_vulns):
                 logger.info(f"Proactive scan detected NEW vuln: {v['name']}. Triggering Zero-Touch Automation.")
                 
                 try:
@@ -349,6 +358,9 @@ def proactive_scanner(bot_token):
                     }
                     logger.info(f"--- AUTO-JIRA PAYLOAD SENT ---\n{json.dumps(jira_payload, indent=2)}\n-----------------------------")
     
+                    remaining = total_new - 1 - i
+                    note_text = f"_Note: {remaining} additional new vulnerabilities were found and populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._" if remaining > 0 else "_Note: All vulnerabilities have been populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._"
+                    
                     # 3. Informational Slack Alert
                     client.chat_postMessage(
                         channel=SLACK_CHANNEL_ID,
@@ -359,11 +371,11 @@ def proactive_scanner(bot_token):
                             {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}},
                             {"type": "divider"},
                             {"type": "section", "text": {"type": "mrkdwn", "text": f"✅ *Actions Taken Autonomously:*\n• *Code Patch:* Auto-Patch PR created: {pr_link_text}\n• *Ticketing:* Jira Ticket <https://jira.com/browse/SEC-105|SEC-105> automatically generated and assigned."}},
+                            {"type": "context", "elements": [{"type": "mrkdwn", "text": note_text}]}
                         ]
                     )
                 except Exception as e:
                     logger.error(f"Failed to send proactive alert for {v['name']}: {e}.")
-            client.chat_postMessage(channel=SLACK_CHANNEL_ID, text=f"_Note: All {len(new_vulns)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._")
 
 if __name__ == "__main__":
     bot_token = os.environ.get("SLACK_BOT_TOKEN")
