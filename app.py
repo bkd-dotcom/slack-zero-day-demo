@@ -229,7 +229,7 @@ def handle_create_ticket(ack, body, logger, respond):
     respond(text=f"✅ *Action Confirmed:* Enterprise Jira Ticket successfully generated via REST API. \n🔗 <https://jira.com/browse/SEC-104|SEC-104: Zero-Day Vulnerability in {pkg_name}>", replace_original=False)
 
 @app.action("open_pr")
-def handle_open_pr(ack, body, logger, respond):
+def handle_open_pr(ack, body, client, logger, respond):
     ack()
     logger.info("Open PR button clicked!")
     
@@ -248,7 +248,14 @@ def handle_open_pr(ack, body, logger, respond):
         if not pr_url:
             pr_url = "https://github.com/bkd-dotcom/slack-zero-day-demo/pulls"
             
-        respond(text=f"✅ *Action Confirmed:* An automated PR bumping `{pkg}` has been pushed. \n🔗 <{pr_url}|View PR on GitHub>", replace_original=False)
+        try:
+            client.chat_postMessage(
+                channel=body["container"]["channel_id"],
+                text=f"✅ *Action Confirmed:* An automated PR bumping `{pkg}` has been pushed. \n🔗 <{pr_url}|View PR on GitHub>",
+                thread_ts=body.get("message", {}).get("ts")
+            )
+        except Exception as e:
+            logger.error(f"Failed to post PR success message: {e}")
             
     threading.Thread(target=async_create_pr, daemon=True).start()
 
