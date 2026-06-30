@@ -148,6 +148,7 @@ def handle_scan_command(ack, body, logger, respond):
             })
             
             respond(blocks=blocks, response_type="in_channel")
+        respond(text=f"_Note: All {len(vulnerable_packages)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._", response_type="in_channel")
     else:
         respond(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.", response_type="in_channel")
 
@@ -177,6 +178,7 @@ def handle_app_mention(body, say, logger):
             })
             
             say(blocks=blocks)
+        say(text=f"_Note: All {len(vulnerable_packages)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._")
     else:
         say(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.")
 
@@ -354,6 +356,7 @@ def proactive_scanner(bot_token):
                     )
                 except Exception as e:
                     logger.error(f"Failed to send proactive alert for {v['name']}: {e}.")
+            client.chat_postMessage(channel=SLACK_CHANNEL_ID, text=f"_Note: All {len(new_vulns)} vulnerabilities have been synced to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._")
 
 if __name__ == "__main__":
     bot_token = os.environ.get("SLACK_BOT_TOKEN")
