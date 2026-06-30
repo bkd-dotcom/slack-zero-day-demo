@@ -129,28 +129,25 @@ def handle_scan_command(ack, body, logger, respond):
     vulnerable_packages = latest_scan_results.get("vulnerabilities", [])
     
     if vulnerable_packages:
-        v = vulnerable_packages[0]
-        blocks = [
-            {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
-            {"type": "divider"},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
-        ]
-        
-        blocks.append({
-            "type": "actions",
-            "elements": [
-                {"type": "button", "text": {"type": "plain_text", "text": "Create Jira Ticket", "emoji": True}, "style": "primary", "value": f"{v['name']}|{v['latest_id']}", "action_id": "create_ticket"},
-                {"type": "button", "text": {"type": "plain_text", "text": "Open Auto-Patch PR", "emoji": True}, "style": "danger", "value": "open_pr", "action_id": "open_pr"},
-                {"type": "button", "text": {"type": "plain_text", "text": "Ask AI for Help", "emoji": True}, "value": v['name'], "action_id": "ask_ai"}
+        for v in vulnerable_packages:
+            blocks = [
+                {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
+                {"type": "divider"},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
             ]
-        })
-        
-        respond(blocks=blocks, response_type="in_channel")
-        
-        if len(vulnerable_packages) > 1:
-            respond(text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._", response_type="in_channel")
+            
+            blocks.append({
+                "type": "actions",
+                "elements": [
+                    {"type": "button", "text": {"type": "plain_text", "text": "Create Jira Ticket", "emoji": True}, "style": "primary", "value": f"{v['name']}|{v['latest_id']}", "action_id": "create_ticket"},
+                    {"type": "button", "text": {"type": "plain_text", "text": "Open Auto-Patch PR", "emoji": True}, "style": "danger", "value": "open_pr", "action_id": "open_pr"},
+                    {"type": "button", "text": {"type": "plain_text", "text": "Ask AI for Help", "emoji": True}, "value": v['name'], "action_id": "ask_ai"}
+                ]
+            })
+            
+            respond(blocks=blocks, response_type="in_channel")
     else:
         respond(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.", response_type="in_channel")
 
@@ -161,27 +158,25 @@ def handle_app_mention(body, say, logger):
     vulnerable_packages = latest_scan_results.get("vulnerabilities", [])
     
     if vulnerable_packages:
-        v = vulnerable_packages[0]
-        blocks = [
-            {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
-            {"type": "divider"},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
-        ]
-        
-        blocks.append({
-            "type": "actions",
-            "elements": [
-                {"type": "button", "text": {"type": "plain_text", "text": "Create Jira Ticket", "emoji": True}, "style": "primary", "value": f"{v['name']}|{v['latest_id']}", "action_id": "create_ticket"},
-                {"type": "button", "text": {"type": "plain_text", "text": "Open Auto-Patch PR", "emoji": True}, "style": "danger", "value": "open_pr", "action_id": "open_pr"},
-                {"type": "button", "text": {"type": "plain_text", "text": "Ask AI for Help", "emoji": True}, "value": v['name'], "action_id": "ask_ai"}
+        for v in vulnerable_packages:
+            blocks = [
+                {"type": "header", "text": {"type": "plain_text", "text": "🚨 CRITICAL ZERO-DAY DETECTED 🚨", "emoji": True}},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"*Universal Real-Time Search:* A vulnerability was just matched in the `{v['ecosystem']}` ecosystem!"}},
+                {"type": "divider"},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"⚠️ *Package:* `{v['name']}`\n*Current Version in Prod:* `{v['version']}`\n*Advisories Found:* `{v['vuln_count']}`\n*Vulnerability:* {v['latest_id']} - {v['summary']}\n\n*Recommended Action:* Immediate patch required."}},
+                {"type": "section", "text": {"type": "mrkdwn", "text": f"🤖 *AI Threat Analysis:*\n_{v['ai_threat_analysis']}_"}}
             ]
-        })
-        
-        say(blocks=blocks)
-        if len(vulnerable_packages) > 1:
-            say(text=f"_Note: {len(vulnerable_packages)-1} additional vulnerabilities were found and populated to the <https://zero-day-sentinel-712918182816.us-central1.run.app|Web Dashboard>._")
+            
+            blocks.append({
+                "type": "actions",
+                "elements": [
+                    {"type": "button", "text": {"type": "plain_text", "text": "Create Jira Ticket", "emoji": True}, "style": "primary", "value": f"{v['name']}|{v['latest_id']}", "action_id": "create_ticket"},
+                    {"type": "button", "text": {"type": "plain_text", "text": "Open Auto-Patch PR", "emoji": True}, "style": "danger", "value": "open_pr", "action_id": "open_pr"},
+                    {"type": "button", "text": {"type": "plain_text", "text": "Ask AI for Help", "emoji": True}, "value": v['name'], "action_id": "ask_ai"}
+                ]
+            })
+            
+            say(blocks=blocks)
     else:
         say(text="✅ *Scan Complete:* No zero-day vulnerabilities detected across any ecosystem.")
 
